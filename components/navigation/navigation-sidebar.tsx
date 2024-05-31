@@ -9,12 +9,12 @@ import { NavigationItem } from './navigation-item';
 import { ModeToggle } from '../mode-taggle';
 import { UserButton } from '@clerk/nextjs';
 
-export async function NavigationSidebar() {
+export async function NavigationSidebar(): Promise<JSX.Element> {
 
     const profile = await currentProfile();
 
     if(!profile) {
-        return redirect;
+        return redirect("/");
     }
 
     const servers = await db.server.findMany({
