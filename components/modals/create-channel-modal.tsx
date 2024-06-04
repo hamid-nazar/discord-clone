@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import qs from "query-string"
 import * as z from 'zod'
@@ -26,7 +26,9 @@ const formSchema = z.object({
 
 export function CreateChannelModal(){
 
-    const {isOpen,type, onOpen, onClose} = useModal();
+    const {isOpen,type, onOpen, onClose, data} = useModal();
+
+    const {channelType} = data;
 
     const isModalOpen = isOpen && type === 'createChannel';
 
@@ -39,10 +41,20 @@ export function CreateChannelModal(){
             resolver: zodResolver(formSchema),
             defaultValues: {
                 name: '',
-                type: ChannelType.TEXT
+                type: channelType || ChannelType.TEXT
             }
         }
     );
+
+    useEffect(function(){
+
+        if (channelType) {
+            form.setValue('type', channelType);
+        }
+        else {
+            form.setValue('type', ChannelType.TEXT);
+        }
+    }, [channelType, form]);
 
     const isLoading = form.formState.isSubmitting;
 
