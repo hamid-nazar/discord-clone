@@ -43,6 +43,6 @@ export default async function ServerIdLayout({children,params}: {children: React
         </main>
        
         
-        </div>
+     </div>
   )
 }
