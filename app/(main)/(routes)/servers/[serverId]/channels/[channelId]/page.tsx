@@ -8,6 +8,7 @@ import {ChatHeader} from '@/components/chat/chat-header';
 import { ChatInput } from '@/components/chat/chat-input';
 import { currentProfile } from '@/lib/current-profile';
 import { db } from '@/lib/db';
+import { ChatMessages } from '@/components/chat/chat-massages';
 
 interface ChannelIdPageProps {
     params: {
@@ -53,9 +54,16 @@ console.log(channel.name)
     <div className='flex flex-col bg-white dark:bg-[#313338] h-screen'>
         <ChatHeader serverId={channel.serverId} name={channel.name} type={'channel'} />
 
-        <div className='flex-1'>
-            Future messages here
-        </div>
+        <ChatMessages 
+            name={channel.name} 
+            member={member} 
+            chatId={channel.id}
+            apiUrl={'/api/messages'} 
+            socketUrl={'/api/socket/messages'} 
+            socketQuery={{channelId: channelId, serverId: serverId}} 
+            paramKey={'channelId'} 
+            paramValue={channel.id} 
+            type={'channel'} />
 
         <ChatInput apiUrl={'/api/socket/messages'} query={{serverId, channelId}} name={channel.name} type={'channel'} />
     </div>
