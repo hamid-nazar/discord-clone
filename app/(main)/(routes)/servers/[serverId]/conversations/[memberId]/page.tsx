@@ -1,25 +1,32 @@
-import { ChatHeader } from '@/components/chat/chat-header';
-import { getOrCreateConversation } from '@/lib/conversation';
-import { currentProfile } from '@/lib/current-profile';
-import { db } from '@/lib/db';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import React from 'react'
-
+import { ChatHeader } from "@/components/chat/chat-header";
+import { ChatInput } from "@/components/chat/chat-input";
+import { ChatMessages } from "@/components/chat/chat-massages";
+import { MediaRoom } from "@/components/media-room";
+import { getOrCreateConversation } from "@/lib/conversation";
+import { currentProfile } from "@/lib/current-profile";
+import { db } from "@/lib/db";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import React from "react";
 
 interface MemberIdPageProps {
-  params:{ 
+  params: {
     memberId: string;
-    serverId: string;}
+    serverId: string;
+  };
+  searchParams?: {
+    video?: boolean;
+  };
 }
 
-
-export default async function MemberIdPage({params}: MemberIdPageProps) {
-
+export default async function MemberIdPage({
+  params,
+  searchParams,
+}: MemberIdPageProps) {
   const profile = await currentProfile();
 
   if (!profile) {
-      return auth().redirectToSignIn();
+    return auth().redirectToSignIn();
   }
 
   const currentMember = await db.member.findFirst({
@@ -28,31 +35,68 @@ export default async function MemberIdPage({params}: MemberIdPageProps) {
       serverId: params.serverId,
     },
     include: {
-      profile: true
-    }
-  })
-  
-  if(!currentMember) {
+      profile: true,
+    },
+  });
+
+  if (!currentMember) {
     return redirect("/");
   }
 
-  const conversation = await getOrCreateConversation(currentMember.id, params.memberId);
+  const conversation = await getOrCreateConversation(
+    currentMember.id,
+    params.memberId
+  );
 
-  if(!conversation) {
+  if (!conversation) {
     return redirect(`/servers/${params.serverId}`);
   }
 
-  const {memberOne, memberTwo} = conversation;
+  const { memberOne, memberTwo } = conversation;
 
-  const otherMember = memberOne.profileId === profile.id ? memberTwo : memberOne;
-
-
+  const otherMember =
+    memberOne.profileId === profile.id ? memberTwo : memberOne;
 
   return (
-    <div className='bg-white dark:bg-[#313338] flex flex-col h-full'>
+    <div className="bg-white dark:bg-[#313338] flex flex-col h-screen">
+      <ChatHeader
+        imageUrl={otherMember.profile?.imageUrl}
+        name={otherMember.profile?.name}
+        serverId={params.serverId}
+        type="conversation"
+      />
 
-      <ChatHeader imageUrl={otherMember.profile?.imageUrl} name={otherMember.profile?.name} serverId={params.serverId} type="conversation"/>
-        
+      {searchParams?.video && (
+        <MediaRoom
+         channelId={conversation.id}
+         video={true}
+         audio={false}
+
+        />
+      )}
+      
+      {!searchParams?.video && (
+        <>
+          <ChatMessages
+            name={otherMember.profile?.name}
+            member={currentMember}
+            channelId={conversation.id}
+            apiUrl={"/api/direct-messages"}
+            socketUrl={"/api/socket/direct-messages"}
+            socketQuery={{ conversationId: conversation.id }}
+            paramKey={"conversationId"}
+            paramValue={conversation.id}
+            type={"conversation"}
+          />
+
+          <ChatInput
+            apiUrl={"/api/socket/direct-messages"}
+            query={{ conversationId: conversation.id }}
+            name={otherMember.profile?.name}
+            type={"conversation"}
+          />
+        </>
+      )}
     </div>
-  )
+  );
 }
