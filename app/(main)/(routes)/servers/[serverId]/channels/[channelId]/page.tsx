@@ -57,10 +57,10 @@ console.log(channel.name)
         <ChatMessages 
             name={channel.name} 
             member={member} 
-            chatId={channel.id}
+            channelId={channel.id}
             apiUrl={'/api/messages'} 
             socketUrl={'/api/socket/messages'} 
-            socketQuery={{channelId: channelId, serverId: serverId}} 
+            socketQuery={{channelId: channel.id, serverId: serverId}} 
             paramKey={'channelId'} 
             paramValue={channel.id} 
             type={'channel'} />

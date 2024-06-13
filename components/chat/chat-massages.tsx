@@ -2,15 +2,19 @@
 
 import { Member, Message, Profile } from '@prisma/client';
 import React, { Fragment } from 'react'
+import {format} from 'date-fns'
 import { ChatWelcome } from './chat-welcome';
 import { useChatQuery } from '@/hooks/use-chat-query';
 import { Loader2, ServerCrash } from 'lucide-react';
+import { ChatItem } from './chat-item';
+import { useChatSocket } from '@/hooks/use-chat-socket';
+
 
 
 interface ChatMessagesProps {
    name: string;
    member: Member;
-   chatId: string;
+   channelId: string;
    apiUrl: string;
    socketUrl: string;
    socketQuery: Record<string, any>;
@@ -26,10 +30,12 @@ type MessageWithMemberWithProfile = Message & {
   
 }
 
+const DATE_FORMAT = "d MM yyyy, HH:mm";
+
 export function ChatMessages({
   name,
   member,
-  chatId,
+  channelId,
   apiUrl,
   socketUrl,
   socketQuery,
@@ -38,7 +44,9 @@ export function ChatMessages({
   type
 }: ChatMessagesProps) {
 
-  const queryKey = `chat:${chatId}`;
+  const queryKey = `chat:${channelId}`;
+  const addKey = `chat:${channelId}:messages`;
+  const updateKey = `chat:${channelId}:messages:update`;
 
   const {       
     data, 
@@ -46,6 +54,8 @@ export function ChatMessages({
     hasNextPage, 
     isFetchingNextPage,
     status} = useChatQuery({queryKey, apiUrl, paramKey, paramValue});
+
+    useChatSocket({addKey, updateKey, queryKey});
 
 
   if(status === "pending") {
@@ -86,9 +96,18 @@ export function ChatMessages({
 
               {group.items.map((message: MessageWithMemberWithProfile) => (
 
-                <div key={message.id}>
-                  {message.content}
-                </div>
+                <ChatItem
+                  key={message.id}
+                  messageId={message.id}
+                  conten={message.content}
+                  fileUrl={message?.fileUrl}
+                  deleted={message.deleted}
+                  timestamp={format(message.createdAt, DATE_FORMAT)} 
+                  member={message.member}
+                  currentMember={member}
+                  isUpdated={message.updatedAt !== message.createdAt}
+                  socketUrl={socketUrl}
+                  socketQuery={socketQuery}/>
 
               ))}
 
