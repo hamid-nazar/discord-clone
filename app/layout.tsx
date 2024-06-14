@@ -36,10 +36,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
                 {children}
 
               </QueryProvider>
-
-
             </SocketProvider>
-
           </ThemeProvider>
 
         </body>

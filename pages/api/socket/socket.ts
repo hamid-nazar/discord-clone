@@ -1,6 +1,6 @@
-import {Server as NextServer} from "http";
+import {Server as HttpServer} from "http";
 import { NextApiRequest } from "next";
-import {Server as ServerIO} from "socket.io";
+import {Server as SocketServer} from "socket.io";
 
 import {NextApiResponseServiceIO} from "@/types";
 
@@ -12,15 +12,15 @@ export const config = {
 }
 
 
-export default async function ioHandler(req: NextApiRequest, res: NextApiResponseServiceIO) {
+export default async function socketHandler(req: NextApiRequest, res: NextApiResponseServiceIO) {
 
     if (!res.socket.server.io) {
 
-        const httpServer: NextServer = res.socket.server as any;
+        const httpServer: HttpServer = res.socket.server as any;
 
         const parth = "/api/socket/io";
 
-        const io = new ServerIO(httpServer, {
+        const io = new SocketServer(httpServer, {
             path: parth,
             addTrailingSlash: false
         });
